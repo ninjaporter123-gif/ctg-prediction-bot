@@ -1,10 +1,19 @@
 import time
 import requests
 
-BOT_TOKEN = "8422472428:AAGx7bU8k1F-E9J4Ym6v6n7v5k9v9k9v9k"
+# INGA UNGA WORKING BOT TOKEN PASTE PANNUNGA
+BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"
 CHAT_ID = "-1004446531098"
 API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
 TARGET_WINS = 10
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://ar-lottery01.com/",
+    "Origin": "https://ar-lottery01.com"
+}
 
 def tg_send(text):
     try:
@@ -16,6 +25,8 @@ def tg_send(text):
         data = r.json()
         if data.get("ok"):
             return data["result"]["message_id"]
+        else:
+            print(f"TG Send Rejected: {data}")
     except Exception as e:
         print(f"TG Send Error: {e}")
     return None
@@ -32,13 +43,16 @@ def tg_edit(msg_id, text):
 
 def fetch_history():
     try:
-        r = requests.get(API_URL, timeout=8)
-        data = r.json()
-        items = data.get("data", {}).get("list") or data.get("list") or []
-        return items
+        r = requests.get(API_URL, headers=HEADERS, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            items = data.get("data", {}).get("list") or data.get("list") or []
+            return items
+        else:
+            print(f"API Blocked: Status Code {r.status_code}")
     except Exception as e:
-        print(f"API Error: {e}")
-        return []
+        print(f"API Fetch Error: {e}")
+    return []
 
 def calculate_2738(history):
     latest_num = int(history[0]["number"])
@@ -46,11 +60,9 @@ def calculate_2738(history):
     num_str = "".join([str(history[i]["number"]) for i in range(count)])
     
     divisor = int(num_str) if int(num_str) > 0 else 1
-    # 2738 scaled to 20 decimal places
     scaled = (2738 * (10**24)) // divisor
     dec_str = str(scaled).zfill(24)[:20]
     
-    # Ratio calculation
     big_digits = [int(c) for c in dec_str if int(c) >= 5]
     small_digits = [int(c) for c in dec_str if int(c) < 5]
     
@@ -93,7 +105,7 @@ def main():
     while wins < TARGET_WINS:
         now_sec = int(time.time()) % 60
         
-        # 1. Dispatch at :25 - :35 second window
+        # Dispatch window :25 - :35
         if 25 <= now_sec <= 35:
             history = fetch_history()
             if history:
@@ -125,12 +137,11 @@ def main():
                     
                     msg_id = tg_send(card)
                     last_predicted_issue = target_issue
-                    print(f"Dispatched Issue #{target_issue}")
+                    print(f"Dispatched Issue #{target_issue} | Prediction: {pred_size}")
                     
-                    # 2. Wait for draw at :00 and verify at :03
+                    # Wait for draw result at :03
                     time.sleep(35)
                     
-                    # Result polling loop
                     resolved = False
                     for _ in range(15):
                         time.sleep(2)
@@ -173,12 +184,12 @@ def main():
                                 if msg_id:
                                     tg_edit(msg_id, updated_card)
                                 resolved = True
+                                print(f"Issue #{target_issue} Finished: {result_banner.split()[1]}")
                                 break
                     if not resolved:
                         print(f"Issue #{target_issue} verification timed out.")
         time.sleep(1)
 
-    # Completed target
     final_card = (
         "🎉 <b>SESSION TARGET COMPLETED!</b> 🎉\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -191,4 +202,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-              
+    
