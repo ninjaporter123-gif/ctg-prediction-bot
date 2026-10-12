@@ -1,19 +1,17 @@
 import time
 import requests
+import cloudscraper
 
-# INGA UNGA WORKING BOT TOKEN PASTE PANNUNGA
-BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"
+# UNGA BOT DETAILS
+BOT_TOKEN = "8422472428:AAGx7bU8k1F-E9J4Ym6v6n7v5k9v9k9v9k"
 CHAT_ID = "-1004446531098"
 API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
 TARGET_WINS = 10
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://ar-lottery01.com/",
-    "Origin": "https://ar-lottery01.com"
-}
+# Cloudflare bypass scraper
+scraper = cloudscraper.create_scraper(
+    browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
+)
 
 def tg_send(text):
     try:
@@ -26,9 +24,9 @@ def tg_send(text):
         if data.get("ok"):
             return data["result"]["message_id"]
         else:
-            print(f"TG Send Rejected: {data}")
+            print(f"TG Send Error: {data}")
     except Exception as e:
-        print(f"TG Send Error: {e}")
+        print(f"TG Connection Error: {e}")
     return None
 
 def tg_edit(msg_id, text):
@@ -43,15 +41,15 @@ def tg_edit(msg_id, text):
 
 def fetch_history():
     try:
-        r = requests.get(API_URL, headers=HEADERS, timeout=10)
+        r = scraper.get(API_URL, timeout=12)
         if r.status_code == 200:
             data = r.json()
             items = data.get("data", {}).get("list") or data.get("list") or []
             return items
         else:
-            print(f"API Blocked: Status Code {r.status_code}")
+            print(f"Scraper Status Code: {r.status_code}")
     except Exception as e:
-        print(f"API Fetch Error: {e}")
+        print(f"Fetch Error: {e}")
     return []
 
 def calculate_2738(history):
@@ -86,7 +84,7 @@ def calculate_2738(history):
     return pred_size, hot, chosen, dec_str
 
 def main():
-    print("Starting CTG Prediction Session via GitHub Cloud...")
+    print("Session starting on GitHub Cloud...")
     init_card = (
         "👑 <b>CTG OFFICIAL</b> 👑\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -139,7 +137,6 @@ def main():
                     last_predicted_issue = target_issue
                     print(f"Dispatched Issue #{target_issue} | Prediction: {pred_size}")
                     
-                    # Wait for draw result at :03
                     time.sleep(35)
                     
                     resolved = False
@@ -184,7 +181,7 @@ def main():
                                 if msg_id:
                                     tg_edit(msg_id, updated_card)
                                 resolved = True
-                                print(f"Issue #{target_issue} Finished: {result_banner.split()[1]}")
+                                print(f"Issue #{target_issue} Evaluated: {result_banner.split()[1]}")
                                 break
                     if not resolved:
                         print(f"Issue #{target_issue} verification timed out.")
@@ -198,8 +195,8 @@ def main():
         "👑 <i>Congratulations to all VIP members!</i>"
     )
     tg_send(final_card)
-    print("Session completed successfully!")
+    print("Session target achieved.")
 
 if __name__ == "__main__":
     main()
-    
+        
