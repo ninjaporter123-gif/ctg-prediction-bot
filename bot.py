@@ -3,15 +3,15 @@ import requests
 import urllib.parse
 import json
 
-# UNGA BOT DETAILS
-BOT_TOKEN = "8422472428:AAGx7bU8k1F-E9J4Ym6v6n7v5k9v9k9v9k"
+# 1. UNGA ACTIVE TELEGRAM BOT TOKEN INGA PODUNGA:
+BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"
 CHAT_ID = "-1004446531098"
 TARGET_WINS = 10
 
-# AllOrigins bypass proxy URL
+# Codetabs Fast Proxy Gateway
 RAW_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
 ENCODED_URL = urllib.parse.quote(RAW_API)
-PROXY_URL = f"https://api.allorigins.win/raw?url={ENCODED_URL}"
+PROXY_URL = f"https://api.codetabs.com/v1/proxy?quest={ENCODED_URL}"
 
 def tg_send(text):
     try:
@@ -41,8 +41,7 @@ def tg_edit(msg_id, text):
 
 def fetch_history():
     try:
-        # Fetching through clean residential proxy gateway
-        r = requests.get(PROXY_URL, timeout=15)
+        r = requests.get(PROXY_URL, timeout=12)
         if r.status_code == 200:
             data = r.json()
             if isinstance(data, str):
@@ -87,7 +86,7 @@ def calculate_2738(history):
     return pred_size, hot, chosen, dec_str
 
 def main():
-    print("Session starting on GitHub Cloud via AllOrigins Proxy...")
+    print("Session starting on GitHub Cloud...")
     init_card = (
         "👑 <b>CTG OFFICIAL</b> 👑\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -140,7 +139,6 @@ def main():
                     last_predicted_issue = target_issue
                     print(f"Dispatched Issue #{target_issue} | Prediction: {pred_size}")
                     
-                    # Wait for draw at :00 and verify
                     time.sleep(35)
                     
                     resolved = False
@@ -185,7 +183,7 @@ def main():
                                 if msg_id:
                                     tg_edit(msg_id, updated_card)
                                 resolved = True
-                                print(f"Issue #{target_issue} Evaluated: {result_banner.split()[1]}")
+                                print(f"Issue #{target_issue} Finished: {result_banner.split()[1]}")
                                 break
                     if not resolved:
                         print(f"Issue #{target_issue} verification timed out.")
