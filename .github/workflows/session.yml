@@ -24,5 +24,7 @@ jobs:
         run: pip install requests
 
       - name: Execute Prediction Session
-        run: python bot.py
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python -u bot.py
         
