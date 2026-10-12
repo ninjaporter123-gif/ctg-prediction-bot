@@ -1,17 +1,17 @@
 import time
 import requests
-import cloudscraper
+import urllib.parse
+import json
 
 # UNGA BOT DETAILS
 BOT_TOKEN = "8422472428:AAGx7bU8k1F-E9J4Ym6v6n7v5k9v9k9v9k"
 CHAT_ID = "-1004446531098"
-API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
 TARGET_WINS = 10
 
-# Cloudflare bypass scraper
-scraper = cloudscraper.create_scraper(
-    browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
-)
+# AllOrigins bypass proxy URL
+RAW_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
+ENCODED_URL = urllib.parse.quote(RAW_API)
+PROXY_URL = f"https://api.allorigins.win/raw?url={ENCODED_URL}"
 
 def tg_send(text):
     try:
@@ -41,13 +41,16 @@ def tg_edit(msg_id, text):
 
 def fetch_history():
     try:
-        r = scraper.get(API_URL, timeout=12)
+        # Fetching through clean residential proxy gateway
+        r = requests.get(PROXY_URL, timeout=15)
         if r.status_code == 200:
             data = r.json()
+            if isinstance(data, str):
+                data = json.loads(data)
             items = data.get("data", {}).get("list") or data.get("list") or []
             return items
         else:
-            print(f"Scraper Status Code: {r.status_code}")
+            print(f"Proxy Status Code: {r.status_code}")
     except Exception as e:
         print(f"Fetch Error: {e}")
     return []
@@ -84,7 +87,7 @@ def calculate_2738(history):
     return pred_size, hot, chosen, dec_str
 
 def main():
-    print("Session starting on GitHub Cloud...")
+    print("Session starting on GitHub Cloud via AllOrigins Proxy...")
     init_card = (
         "👑 <b>CTG OFFICIAL</b> 👑\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -137,6 +140,7 @@ def main():
                     last_predicted_issue = target_issue
                     print(f"Dispatched Issue #{target_issue} | Prediction: {pred_size}")
                     
+                    # Wait for draw at :00 and verify
                     time.sleep(35)
                     
                     resolved = False
@@ -199,4 +203,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
+    
