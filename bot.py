@@ -3,7 +3,9 @@ import requests
 import urllib.parse
 import json
 
-# 1. UNGA ACTIVE TELEGRAM BOT TOKEN INGA PODUNGA:
+import sys
+# Default 10 wins, workflow dispatch inputs irundha adhai eduthukum
+TARGET_WINS = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"
 CHAT_ID = "-1004446531098"
 TARGET_WINS = 10
