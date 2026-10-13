@@ -32,4 +32,3 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
         run: python -u bot.py
-        
