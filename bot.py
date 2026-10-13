@@ -2,33 +2,22 @@ import sys
 import time
 import requests
 import json
+import urllib.parse
 
-# TELEGRAM BOT CONFIG
-BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"
+# BOT CONFIG
+BOT_TOKEN = "8662159068:AAE-FHz_SeJWVLXonnWX7piNRzYl3DLLArw"  # Unga active token
 CHAT_ID = "-1004446531098"
-
-# Target wins parameter (Default 10)
 TARGET_WINS = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 
-API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
+RAW_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=10"
+ENC_API = urllib.parse.quote(RAW_API)
 
-# Real browser spoof headers
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Origin": "https://dhaniwin0.com",
-    "Referer": "https://dhaniwin0.com/",
-    "Sec-Ch-Ua": '"Not-A.Brand";v="99", "Chromium";v="124"',
-    "Sec-Ch-Ua-Mobile": "?0",
-    "Sec-Ch-Ua-Platform": '"Windows"',
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "cross-site"
-}
-
-session = requests.Session()
-session.headers.update(HEADERS)
+# Fast failover proxies
+PROXY_ENDPOINTS = [
+    f"https://corsproxy.io/?url={ENC_API}",
+    f"https://api.allorigins.win/raw?url={ENC_API}",
+    f"https://thingproxy.freeboard.io/fetch/{RAW_API}"
+]
 
 def tg_send(text):
     try:
@@ -40,9 +29,9 @@ def tg_send(text):
         data = r.json()
         if data.get("ok"):
             return data["result"]["message_id"]
-        print(f"TG Send Error: {data}")
+        print(f"TG Error: {data}")
     except Exception as e:
-        print(f"TG Send Exception: {e}")
+        print(f"TG Ex: {e}")
     return None
 
 def tg_edit(msg_id, text):
@@ -53,33 +42,22 @@ def tg_edit(msg_id, text):
             timeout=10
         )
     except Exception as e:
-        print(f"TG Edit Exception: {e}")
+        print(f"TG Edit Ex: {e}")
 
 def fetch_history():
-    # Method 1: Direct fetch with browser headers
-    try:
-        r = session.get(API_URL, timeout=6)
-        if r.status_code == 200:
-            data = r.json()
-            items = data.get("data", {}).get("list") or data.get("list") or []
-            if items:
-                return items
-    except Exception:
-        pass
-
-    # Method 2: High-speed proxy fallback
-    try:
-        r2 = requests.get(f"https://api.allorigins.win/raw?url={API_URL}", timeout=6)
-        if r2.status_code == 200:
-            data = r2.json()
-            if isinstance(data, str):
-                data = json.loads(data)
-            items = data.get("data", {}).get("list") or data.get("list") or []
-            if items:
-                return items
-    except Exception:
-        pass
-
+    # Try endpoints one by one
+    for url in PROXY_ENDPOINTS:
+        try:
+            r = requests.get(url, timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                if isinstance(data, str):
+                    data = json.loads(data)
+                items = data.get("data", {}).get("list") or data.get("list") or []
+                if items and len(items) > 0:
+                    return items
+        except Exception:
+            continue
     return []
 
 def calculate_2738(history):
@@ -110,7 +88,7 @@ def calculate_2738(history):
     return pred_size, hot, chosen, dec_str
 
 def main():
-    print(f"Session starting on GitHub Cloud for {TARGET_WINS} wins...")
+    print(f"Session started for {TARGET_WINS} wins...")
     init_card = (
         "👑 <b>CTG OFFICIAL</b> 👑\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -129,8 +107,8 @@ def main():
     while wins < TARGET_WINS:
         now_sec = int(time.time()) % 60
         
-        # Dispatch window :08 - :20
-        if 8 <= now_sec <= 20:
+        # 1. Prediction Dispatch Window (:05 - :25)
+        if 5 <= now_sec <= 25:
             history = fetch_history()
             if history:
                 curr_issue = int(history[0].get("issueNumber") or history[0].get("period"))
@@ -161,12 +139,14 @@ def main():
                     
                     msg_id = tg_send(card)
                     last_predicted_issue = target_issue
-                    print(f"Dispatched Card for #{target_issue} [{pred_size}]")
+                    print(f"SUCCESS: Dispatched Issue #{target_issue} -> [{pred_size}]")
                     
+                    # Wait till draw (:00s)
                     time.sleep(35)
                     
+                    # 2. Result Verification Window
                     resolved = False
-                    for _ in range(12):
+                    for _ in range(15):
                         time.sleep(2)
                         res_hist = fetch_history()
                         if res_hist:
@@ -207,10 +187,10 @@ def main():
                                 if msg_id:
                                     tg_edit(msg_id, updated_card)
                                 resolved = True
-                                print(f"Settled #{target_issue}: {banner}")
+                                print(f"Settled #{target_issue} -> {banner}")
                                 break
                     if not resolved:
-                        print(f"Verification timeout for #{target_issue}")
+                        print(f"Timeout verifying #{target_issue}")
         time.sleep(1)
 
     final_card = (
@@ -221,8 +201,6 @@ def main():
         "👑 <i>Congratulations to all VIP members!</i>"
     )
     tg_send(final_card)
-    print("Session target reached.")
 
 if __name__ == "__main__":
     main()
-    
