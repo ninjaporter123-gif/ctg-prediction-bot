@@ -1,11 +1,6 @@
 name: CTG Automated VIP Session
 
 on:
-  schedule:
-    # 2:00 PM UTC = 7:30 PM IST (Daily)
-    - cron: '0 14 * * *'
-    # 2:30 PM UTC = 8:00 PM IST (Daily)
-    - cron: '30 14 * * *'
   workflow_dispatch:
     inputs:
       target_wins:
@@ -31,9 +26,5 @@ jobs:
       - name: Execute Prediction Session
         env:
           PYTHONUNBUFFERED: "1"
-        run: python -u bot.py
-- name: Execute Prediction Session
-  env:
-    PYTHONUNBUFFERED: "1"
-  run: python -u bot.py ${{ github.event.inputs.target_wins || '10' }}
-  
+        run: python -u bot.py ${{ github.event.inputs.target_wins || '10' }}
+        
